@@ -5,3 +5,7 @@ type APIResponse struct {
 	Message string `json:"message"`
 	Data    any    `json:"data"`
 }
+
+type MetaInstagramMediaResponse struct {
+	Id string `json:"id"`
+}

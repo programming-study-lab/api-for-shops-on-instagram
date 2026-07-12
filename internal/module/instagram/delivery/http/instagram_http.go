@@ -1,8 +1,9 @@
 package http
 
 import (
-	infrastructure "api-for-shops-on-instagram/internal/infrastructure/server/http"
+	infrastructure "api-for-shops-on-instagram/internal/infrastructure/server/http/data_transfer_object"
 	"api-for-shops-on-instagram/internal/module/instagram/usecase"
+
 	"log"
 	"net/http"
 

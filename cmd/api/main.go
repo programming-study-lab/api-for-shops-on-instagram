@@ -5,7 +5,6 @@ import (
 	server "api-for-shops-on-instagram/internal/infrastructure/server/http"
 	image "api-for-shops-on-instagram/internal/module/image/delivery/http"
 	http "api-for-shops-on-instagram/internal/module/instagram/delivery/http"
-	"api-for-shops-on-instagram/internal/module/instagram/usecase"
 	"api-for-shops-on-instagram/internal/router"
 	"context"
 	"log"
@@ -18,13 +17,14 @@ import (
 func main() {
 
 	igConfig := config.LoadInstagramConfig()
-	igUc := usecase.NewInstagramInfoUsecase(igConfig.Api, igConfig.GraphVersion, igConfig.AccessToken)
-	igHandler := http.NewInstagramHandler(igUc)
 	image := image.NewImageHttp()
 
+	metaInstagramRequest := server.NewMetaInstagramRequest(igConfig.Api, igConfig.GraphVersion, igConfig.InstagramId, igConfig.AccessToken)
+	newMetaInstagramHandler := http.NewMetaInstagramHandler(metaInstagramRequest)
+
 	dependentcies := router.Dependencies{
-		InstagramHandler: igHandler,
-		ImageHttpHandler: image,
+		ImageHttpHandler:     image,
+		MetaInstagramHandler: newMetaInstagramHandler,
 	}
 
 	r := router.Setup(&dependentcies)

@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -42,15 +41,6 @@ func (usecase *instagramInfoUsecase) InstagramGetInfo(ctx context.Context) (*[]m
 		log.Fatal("instagram_usecase(InstagramGetInfo): ", err.Error())
 		return nil, err
 	}
-	fmt.Println("debug: ", body)
-
-	// test := string(body)
-
-	// type test struct {
-	// Id string
-	// }
-
-	// convertTypeInstagramResponse := test{}
 
 	var convertTypeInstagramResponse map[string]interface{}
 	err = json.Unmarshal(body, &convertTypeInstagramResponse)
@@ -59,11 +49,9 @@ func (usecase *instagramInfoUsecase) InstagramGetInfo(ctx context.Context) (*[]m
 		return nil, err
 	}
 
-	fmt.Printf("\ndebug: ", convertTypeInstagramResponse["id"])
 	var instagramInfo []map[string]any
 
 	instagramInfo = append(instagramInfo, convertTypeInstagramResponse)
-	// log("\ndebug: ", instagramInfo)
 
 	return &instagramInfo, nil
 }

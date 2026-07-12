@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,12 +23,12 @@ func NewGinServer(address string, router *gin.Engine) *GinServer {
 
 	return &GinServer{
 		HttpServer: &http.Server{
-			Addr:                         address,
-			Handler:                      router,
-			ReadTimeout:                  10 * time.Second,
-			WriteTimeout:                 10 * time.Second,
-			DisableGeneralOptionsHandler: true,
-			IdleTimeout:                  120 * time.Second,
+			Addr:    address,
+			Handler: router,
+			// ReadTimeout:                  10 * time.Second,
+			// WriteTimeout:                 10 * time.Second,
+			// DisableGeneralOptionsHandler: true,
+			// IdleTimeout:                  120 * time.Second,
 		},
 	}
 }

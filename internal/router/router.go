@@ -12,8 +12,9 @@ import (
 )
 
 type Dependencies struct {
-	InstagramHandler *instagram.InstagramHandler
-	ImageHttpHandler *image.ImageHttpHandler
+	InstagramHandler     *instagram.InstagramHandler
+	ImageHttpHandler     *image.ImageHttpHandler
+	MetaInstagramHandler *instagram.MetaInstagramHandler
 }
 
 func Setup(dependencies *Dependencies) *gin.Engine {
@@ -37,7 +38,7 @@ func Setup(dependencies *Dependencies) *gin.Engine {
 			)
 		})
 		v1.ImageRouter(v1Group, dependencies.ImageHttpHandler)
-		v1.InstagramRouter(v1Group, dependencies.InstagramHandler)
+		v1.MetaInstagramRouter(v1Group, dependencies.MetaInstagramHandler)
 	}
 
 	return router

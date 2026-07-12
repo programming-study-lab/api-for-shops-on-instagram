@@ -21,7 +21,7 @@ func LoadInstagramConfig() *InstagramConfig {
 	}
 
 	return &InstagramConfig{
-		GraphVersion: os.Getenv("GRAPH_VERSION"),
+		GraphVersion: os.Getenv("INSTAGRAM_GRAPH_VERSION"),
 		Api:          os.Getenv("INSTAGRAM_API"),
 		InstagramId:  os.Getenv("INSTAGRAM_ID"),
 		AccessToken:  os.Getenv("INSTAGRAM_ACCESS_TOKEN"),

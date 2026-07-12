@@ -5,10 +5,7 @@ package
       go get github.com/joho/godotenv
    gin
       go get github.com/gin-gonic/gin
-   resty //สำหรับ Fetch ข้อมูลจาก API ของ server อืน
-      go get github.com/go-resty/resty/v2 
+
    
    
    
-   x facebook 
-      go get github.com/huandu/facebook/v2
