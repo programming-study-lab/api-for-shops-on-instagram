@@ -15,5 +15,7 @@ func MetaInstagramRouter(groupV1 *gin.RouterGroup, handler *http.MetaInstagramHa
 		metaInstagram.GET("/:conversation_id/messages", handler.MessageList)
 		metaInstagram.GET("/message/:message_id/", handler.Message)
 		metaInstagram.POST("/messages", handler.SendMessage)
+		metaInstagram.GET("/media", handler.MediaList)
+		metaInstagram.GET("/media/:media_id", handler.MediaDetail)
 	}
 }

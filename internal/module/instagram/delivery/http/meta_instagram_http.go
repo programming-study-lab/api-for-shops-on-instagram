@@ -68,17 +68,21 @@ func (metaIG *MetaInstagramHandler) Media(ctx *gin.Context) {
 		log.Fatalln("meta_instagram_http.go(Media) รับค่าจาก MetaInstagramMediaPublish: ", err.Error())
 		ctx.AbortWithStatusJSON(
 			http.StatusBadRequest,
-			err.Error(),
+			infrastructure.APIResponse{
+				Status:  true,
+				Message: "success",
+				Data:    err.Error(),
+			},
 		)
 		return
 	}
 
 	ctx.AbortWithStatusJSON(
 		http.StatusOK,
-		gin.H{
-			"status":  true,
-			"message": "message",
-			"data":    response,
+		infrastructure.APIResponse{
+			Status:  true,
+			Message: "success",
+			Data:    response,
 		},
 	)
 
@@ -192,6 +196,56 @@ func (metaIG *MetaInstagramHandler) SendMessage(ctx *gin.Context) {
 			Status:  true,
 			Message: "succsss",
 			Data:    &response,
+		},
+	)
+}
+
+func (metaIG *MetaInstagramHandler) MediaList(ctx *gin.Context) {
+	mediaList, err := metaIG.metaInstagramRequest.MetaInstagramMediaList()
+	if err != nil {
+		log.Fatalln("meta_instagram_http.go(MediaList) รับข้อมูลจาก MetaInstagramMediaList: ", err.Error())
+		ctx.AbortWithStatusJSON(
+			http.StatusBadRequest,
+			infrastructure.APIResponse{
+				Status:  false,
+				Message: "error",
+				Data:    err.Error(),
+			},
+		)
+		return
+	}
+
+	ctx.AbortWithStatusJSON(
+		http.StatusOK,
+		infrastructure.APIResponse{
+			Status:  true,
+			Message: "succsss",
+			Data:    &mediaList,
+		},
+	)
+}
+
+func (metaIG *MetaInstagramHandler) MediaDetail(ctx *gin.Context) {
+	mediaDetail, err := metaIG.metaInstagramRequest.MetaInstagramMediaDetail(ctx)
+	if err != nil {
+		log.Fatalln("meta_instagram_http.go(MediaDetail) รับข้อมูลจาก MetaInstagramMediaDetail: ", err.Error())
+		ctx.AbortWithStatusJSON(
+			http.StatusBadRequest,
+			infrastructure.APIResponse{
+				Status:  false,
+				Message: "error",
+				Data:    err.Error(),
+			},
+		)
+		return
+	}
+
+	ctx.AbortWithStatusJSON(
+		http.StatusOK,
+		infrastructure.APIResponse{
+			Status:  true,
+			Message: "succsss",
+			Data:    &mediaDetail,
 		},
 	)
 }
