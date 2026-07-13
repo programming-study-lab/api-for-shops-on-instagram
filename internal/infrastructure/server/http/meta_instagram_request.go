@@ -4,7 +4,6 @@ import (
 	infrastructure "api-for-shops-on-instagram/internal/infrastructure/server/http/data_transfer_object"
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -13,14 +12,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// สำหรับการ Request ข้อมูลจาก API ภายนอก
 type MetaInstagramRequest struct {
-	// ctx                   *gin.Context
 	instagramApi          string
 	instagramGraphVersion string
 	instagramId           string
 	instagramAccessToken  string
 }
 
+// สำหรับการ Request ข้อมูลจาก API ภายนอก
 func NewMetaInstagramRequest(instagramApi string, instagramGraphVersion string, instagramId string, instagramAccessToken string) *MetaInstagramRequest {
 	return &MetaInstagramRequest{
 		instagramApi:          instagramApi,
@@ -30,10 +30,39 @@ func NewMetaInstagramRequest(instagramApi string, instagramGraphVersion string, 
 	}
 }
 
-func (metaInstagramRequest *MetaInstagramRequest) FetchInstagramInfo() {
+// ดึงข้อมูล เช่น Instagram ID ของตนเอง
+func (metaInstagramRequest *MetaInstagramRequest) InstagramGetInfo() (*map[string]any, error) {
+
+	url := metaInstagramRequest.instagramApi
+	url += "/" + metaInstagramRequest.instagramGraphVersion
+	url += "/me"
+	url += "?access_token=" + metaInstagramRequest.instagramAccessToken
+
+	instagramResponse, err := http.Get(url)
+
+	if err != nil {
+		log.Fatal("meta_instagram_request.go(InstagramGetInfo) ดึงข้อมูลจาก API Meta Instagram ", err.Error())
+		return nil, err
+	}
+
+	body, err := io.ReadAll(instagramResponse.Body)
+	if err != nil {
+		log.Fatal("meta_instagram_request.go(InstagramGetInfo) แปลงข้อมูลเป็น JSON: ", err.Error())
+		return nil, err
+	}
+
+	var result map[string]any
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		log.Fatal("meta_instagram_request.go(InstagramGetInfo): เปลี่ยน JSON เป็น map: ", err.Error())
+		return nil, err
+	}
+
+	return &result, nil
 
 }
 
+// สร้าง container สำหรับการเตรียมข้อมูล ก่อนจะโพสต์ Instagram
 func (metaInstagramRequest *MetaInstagramRequest) MetaInstagramMedia(ctx *gin.Context) (*map[string]any, error) {
 	url := metaInstagramRequest.instagramApi
 	url += "/" + metaInstagramRequest.instagramGraphVersion
@@ -51,7 +80,6 @@ func (metaInstagramRequest *MetaInstagramRequest) MetaInstagramMedia(ctx *gin.Co
 	}
 
 	metaRequest, err := json.Marshal(&metaInstagramMediaRequest)
-	fmt.Printf("\ntest: %s\n", string(metaRequest))
 	if err != nil {
 		log.Fatalln("meta_instagram_request.go(MetaInstagramMedia) แปลงข้อมูล จาก Request เป็น Marshaler: ", err.Error())
 		return nil, err
@@ -65,7 +93,6 @@ func (metaInstagramRequest *MetaInstagramRequest) MetaInstagramMedia(ctx *gin.Co
 	}
 
 	body, err := io.ReadAll(metaInstagramResponse.Body)
-	fmt.Printf("\nbody: %s\n", string(body))
 	if err != nil {
 		log.Fatalln("meta_instagram_request.go(MetaInstagramMedia) แปลงข้อมูล ที่ได้รับมาเป็น Byte: ", err.Error())
 		return nil, err
@@ -82,6 +109,7 @@ func (metaInstagramRequest *MetaInstagramRequest) MetaInstagramMedia(ctx *gin.Co
 
 }
 
+// โพสต์ Content ออกสู่สาธารณะ จาก container ที่ได้สร้างไว้
 func (metaInstagramRequest *MetaInstagramRequest) MetaInstagramMediaPublish(creationId *map[string]any) (*map[string]any, error) {
 	url := metaInstagramRequest.instagramApi
 	url += "/" + metaInstagramRequest.instagramGraphVersion
@@ -89,29 +117,21 @@ func (metaInstagramRequest *MetaInstagramRequest) MetaInstagramMediaPublish(crea
 	url += "/media_publish"
 	url += "?access_token=" + metaInstagramRequest.instagramAccessToken
 
-	// fmt.Printf("\n\n[url] %s\n\n", url)
-
 	id := map[string]string{}
 
 	createionId, ok := (*creationId)["id"].(string)
 	if ok == true {
-		// id := map[string]string{
-		// "creation_id": createionId,
-		// }
 		id["creation_id"] = createionId
 	}
 
-	// id := map[string]string{
-	// 	"creation_id": creationId.Id,
-	// }
-
 	metaRequest, err := json.Marshal(id)
-	fmt.Printf("\ntest: %s\n", string(metaRequest))
 	if err != nil {
 		log.Fatalln("meta_instagram_request.go(MetaInstagramMediaPublish) แปลงข้อมูล จาก map[string]any เป็น Marshal: ", err.Error())
 		return nil, err
 	}
 
+	// หน่วงเวลาไว้ 1 วินาที เพื่อไม้ให้ api ของ Meta Instagram ปฏิเสธการร้องขอ
+	// เพราะ หากร้องขอเร็วเกินไปจะถูก Meta Instagram ปฏิเสธ
 	delay := 1
 	time.Sleep(time.Duration(delay) * time.Second)
 
@@ -123,7 +143,6 @@ func (metaInstagramRequest *MetaInstagramRequest) MetaInstagramMediaPublish(crea
 	}
 
 	body, err := io.ReadAll(metaInstagramResponse.Body)
-	fmt.Printf("\nbody: %s\n", string(body))
 	if err != nil {
 		log.Fatalln("meta_instagram_request.go(MetaInstagramMediaPublish) แปลงข้อมูล ที่ได้รับมาเป็น Byte: ", err.Error())
 		return nil, err
@@ -136,7 +155,140 @@ func (metaInstagramRequest *MetaInstagramRequest) MetaInstagramMediaPublish(crea
 		return nil, err
 	}
 
-	// fmt.Println("[err] ", result)
 	return &result, nil
 
+}
+
+// ดึงข้อมูล การสนทนา เพื่อรับ conversation_id
+func (metaInstagramRequest *MetaInstagramRequest) MetaInstagramConversations() (*map[string]any, error) {
+	url := metaInstagramRequest.instagramApi
+	url += "/" + metaInstagramRequest.instagramGraphVersion
+	url += "/" + metaInstagramRequest.instagramId
+	url += "/conversations"
+	url += "?access_token=" + metaInstagramRequest.instagramAccessToken
+
+	metaInstagramResponse, err := http.Get(url)
+	if err != nil {
+		log.Fatalln("meta_instagram_request.go(MetaInstagramConversations) ส่งคำขอไปยัง Meta Instagram: ", err.Error())
+		return nil, err
+	}
+
+	body, err := io.ReadAll(metaInstagramResponse.Body)
+	if err != nil {
+		log.Fatalln("meta_instagram_request.go(MetaInstagramConversations) แปลงข้อมูล ที่ได้รับมาเป็น Byte: ", err.Error())
+		return nil, err
+	}
+
+	result := make(map[string]any)
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		log.Fatalln("meta_instagram_request(MetaInstagramConversations) แปลงข้อมูลจาก json เป็น MetaInstagramMediaResponse: ", err.Error())
+		return nil, err
+	}
+
+	return &result, nil
+
+}
+
+// ดึงจ้อมูลการสนทนา โดยใช้ conversation_id เพื่อรับ message_id
+func (metaInstagramRequest *MetaInstagramRequest) MetaInstagramMessageList(ctx *gin.Context) (*map[string]any, error) {
+
+	conversation_id := ctx.Param("conversation_id")
+
+	url := metaInstagramRequest.instagramApi
+	url += "/" + metaInstagramRequest.instagramGraphVersion
+	url += "/" + conversation_id
+	url += "/messages"
+	url += "?fields=" + "id,form,updated_time,messages"
+	url += "&access_token=" + metaInstagramRequest.instagramAccessToken
+
+	metaInstagramResponse, err := http.Get(url)
+	if err != nil {
+		log.Fatalln("meta_instagram_request.go(MetaInstagramConversationList) ส่งคำขอไปยัง Meta Instagram: ", err.Error())
+		return nil, err
+	}
+
+	body, err := io.ReadAll(metaInstagramResponse.Body)
+	if err != nil {
+		log.Fatalln("meta_instagram_request.go(MetaInstagramConversationList) แปลงข้อมูล ที่ได้รับมาเป็น Byte: ", err.Error())
+		return nil, err
+	}
+
+	result := make(map[string]any)
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		log.Fatalln("meta_instagram_request(MetaInstagramConversationList) แปลงข้อมูลจาก json เป็น MetaInstagramMediaResponse: ", err.Error())
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// ดึงข้อความแชท โดยใช้ message_id หมายเหตุ ข้อมูลที่ได้มี instagram_id ของ ผู้ใช้งาน Instagram ของคู่สนทนาด้วย
+func (metaInstagramRequest *MetaInstagramRequest) MetaInstagramMessage(ctx *gin.Context) (*map[string]any, error) {
+	message_id := ctx.Param("message_id")
+
+	url := metaInstagramRequest.instagramApi
+	url += "/" + metaInstagramRequest.instagramGraphVersion
+	url += "/" + message_id
+	url += "?fields=" + "id,created_time,from,to,message"
+	url += "&access_token=" + metaInstagramRequest.instagramAccessToken
+
+	metaInstagramResponse, err := http.Get(url)
+	if err != nil {
+		log.Fatalln("meta_instagram_request.go(MetaINstagramMessage) ส่งคำขอไปยัง Meta Instagram: ", err.Error())
+		return nil, err
+	}
+
+	body, err := io.ReadAll(metaInstagramResponse.Body)
+	if err != nil {
+		log.Fatalln("meta_instagram_request.go(MetaInstagramMessage) แปลงข้อมูล ที่ได้รับมาเป็น Byte: ", err.Error())
+		return nil, err
+	}
+
+	result := make(map[string]any)
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		log.Fatalln("meta_instagram_request(MetaInstagramConversationList) แปลงข้อมูลจาก json เป็น MetaInstagramMediaResponse: ", err.Error())
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// ส่งข้อความ โดยใช้ instagram_id ของคู่สนทนา หมายเหตุ instagram_id มาพร้อมกับข้อความแชท
+func (metaInstagramRequest *MetaInstagramRequest) MetaInstagramSendMessage(sendMessageModel *infrastructure.MetaInstagramSendMessageModel) (*map[string]any, error) {
+	url := metaInstagramRequest.instagramApi
+	url += "/" + metaInstagramRequest.instagramGraphVersion
+	url += "/" + metaInstagramRequest.instagramId
+	url += "/messages"
+	url += "?access_token=" + metaInstagramRequest.instagramAccessToken
+
+	metaRequest, err := json.Marshal(sendMessageModel)
+	if err != nil {
+		log.Fatalln("meta_instagram_request.go(MetaInstagramMediaPublish) แปลงข้อมูล จาก map[string]any เป็น Marshal: ", err.Error())
+		return nil, err
+	}
+
+	bufferMetaRequest := bytes.NewBuffer(metaRequest)
+	metaInstagramResponse, err := http.Post(url, "application/json", bufferMetaRequest)
+	if err != nil {
+		log.Fatalln("metaInstagramRequest.go(MetaInstagramMediaPublish) ส่งคำขอไปยัง Meta Instagram: ", err.Error())
+		return nil, err
+	}
+
+	body, err := io.ReadAll(metaInstagramResponse.Body)
+	if err != nil {
+		log.Fatalln("meta_instagram_request.go(MetaInstagramMediaPublish) แปลงข้อมูล ที่ได้รับมาเป็น Byte: ", err.Error())
+		return nil, err
+	}
+
+	result := make(map[string]any)
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		log.Fatalln("meta_instagram_request(MetaInstagramMediaPublish) แปลงข้อมูลจาก json เป็น MetaInstagramMediaResponse: ", err.Error())
+		return nil, err
+	}
+
+	return &result, nil
 }

@@ -12,7 +12,7 @@ import (
 )
 
 type Dependencies struct {
-	InstagramHandler     *instagram.InstagramHandler
+	// InstagramHandler     *instagram.InstagramHandler
 	ImageHttpHandler     *image.ImageHttpHandler
 	MetaInstagramHandler *instagram.MetaInstagramHandler
 }
