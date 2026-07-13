@@ -84,7 +84,7 @@ curl -X GET http://localhost:5000/api/v1/instagram/<conversation_id>/messages
 ## รายการ ข้อความแชท
 ***Request Body:***
 ```
-curl -X GET http://localhost:5000/api/v1/instagram/messages/<message_id>
+curl -X GET http://localhost:5000/api/v1/instagram/message/<message_id>/
 ```
 ***Response:***
 ```
