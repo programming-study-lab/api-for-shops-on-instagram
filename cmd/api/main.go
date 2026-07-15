@@ -16,24 +16,34 @@ import (
 
 func main() {
 
+	// โหลดข้อมูลจาก .env
 	igConfig := config.LoadInstagramConfig()
+	// สำหรับใช้งาน api image
 	image := image.NewImageHttp()
 
+	// สำหรับการ Request ข้อมูลจาก API ภายนอก
 	metaInstagramRequest := server.NewMetaInstagramRequest(igConfig.Api, igConfig.GraphVersion, igConfig.InstagramId, igConfig.AccessToken)
+	// สำหรับใช้งาน API
 	newMetaInstagramHandler := http.NewMetaInstagramHandler(metaInstagramRequest)
 
+	// ส่งข้อมูลไปยัง Router เพื่อใช้งานฟังก์ชันการทำงานต่าง ๆ
 	dependentcies := router.Dependencies{
 		ImageHttpHandler:     image,
 		MetaInstagramHandler: newMetaInstagramHandler,
 	}
 
+	// ใช้งาน Router
 	r := router.Setup(&dependentcies)
 
+	// โหลดข้อมูลสำหรับ APP เช่น port
 	app := config.LoadAppConfig()
+	// ตั้งค่าข้อมูลสำหรับ server
 	serv := server.NewGinServer(app.AppAddress+app.AppPort, r)
 
+	// สั่งให้ server เริ่มทำงาน
 	serv.Start()
 
+	// สำหรับ Graceful Shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 

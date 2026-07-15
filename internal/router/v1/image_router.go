@@ -9,6 +9,6 @@ import (
 func ImageRouter(groupV1 *gin.RouterGroup, handler *image.ImageHttpHandler) {
 	image := groupV1.Group("/image")
 	{
-		image.GET("/:image_name", handler.GetImage)
+		image.GET("/:image_name", handler.GetImage) // API รูปภาพ
 	}
 }
