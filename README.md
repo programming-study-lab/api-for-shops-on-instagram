@@ -4,12 +4,12 @@
 # terminal
 > go run cmd/api/main.go
 ```
-## ข้อมูล Instagram ของตนเอง
-*** Request Body: ***
+## แสดงข้อมูล Instagram ของตนเอง
+***Request Body:***
 ```
 curl -X GET http://localhost:5000/api/v1/instagram/
 ```
-*** Response: ***
+***Response:***
 ```
 {
     "status": true,
