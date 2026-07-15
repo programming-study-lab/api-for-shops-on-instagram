@@ -1,4 +1,9 @@
 # api-for-shops-on-instagram
+## วิธีใช้งาน
+```
+# terminal
+> go run cmd/api/main.go
+```
 ## ข้อมูล Instagram ของตนเอง
 *** Request Body: ***
 ```
